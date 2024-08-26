@@ -4,29 +4,36 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_test/app_colors.dart';
 import 'package:todo_test/firebase_utils.dart';
+import 'package:todo_test/home/task_list/editTask.dart';
 import 'package:todo_test/model/task.dart';
+import 'package:todo_test/providers/app_config_provider.dart';
 import 'package:todo_test/providers/list_provider.dart';
 
-class TaskListItem extends StatelessWidget {
+class TaskListItem extends StatefulWidget {
   Task task ;
   TaskListItem({required this.task}) ;
 
+  @override
+  State<TaskListItem> createState() => _TaskListItemState();
+}
 
+class _TaskListItemState extends State<TaskListItem> {
   @override
   Widget build(BuildContext context) {
     var listprovider = Provider.of<ListProvider>(context);
+    var appProvider = Provider.of<AppConfigProvider>(context);
     return Container(
       margin: EdgeInsets.all(12),
       child: Slidable(
 
         startActionPane: ActionPane(
-          extentRatio: 0.25,
+          extentRatio: 0.5,
           motion: const DrawerMotion(),
           children: [
             SlidableAction(
               borderRadius: BorderRadius.circular(15),
               onPressed:(context){
-                FirebaseUtils.deleteTaskFormFireStore(task).timeout(
+                FirebaseUtils.deleteTaskFormFireStore(widget.task).timeout(
                   Duration(seconds: 1),onTimeout: (){
                     print('task deleted successfully') ;
                     listprovider.getAllTasksFromFireStore();
@@ -37,6 +44,16 @@ class TaskListItem extends StatelessWidget {
               foregroundColor: AppColors.whiteColor,
               icon: Icons.delete,
               label: 'Delete',
+            ),
+            SlidableAction(
+              borderRadius: BorderRadius.circular(15),
+              onPressed:(context){
+              showeditscreen(context);
+              } ,
+              backgroundColor: Color.fromARGB(255, 90, 201, 67),
+              foregroundColor: AppColors.whiteColor,
+              icon: Icons.edit,
+              label: 'Edit',
             ),
 
           ],
@@ -54,7 +71,7 @@ class TaskListItem extends StatelessWidget {
             children: [
               Container(
 
-                color: AppColors.primaryColor,
+                color: widget.task.isDone ? AppColors.greenColor : Colors.blue,
                 height: MediaQuery.of(context).size.height*0.1,
                 width: 4,
               ) ,
@@ -64,33 +81,68 @@ class TaskListItem extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(task.title,
+                            Text(widget.task.title,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.primaryColor
+                             color: widget.task.isDone ? AppColors.greenColor : Colors.blue,
                             ),),
-                            Text(task.description ,
+                            Text(widget.task.description ,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.blackColor) , ),
+                                  color: widget.task.isDone ? AppColors.greenColor : Colors.blue,) ),
 
                           ],
                 ),
                     )
                 ),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10 , vertical: 3 ),
-                decoration: BoxDecoration(
-                    color: AppColors.primaryColor ,
-                    borderRadius:  BorderRadius.circular(15)
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    setState(() {
+                      widget.task.isDone =
+                          !widget.task.isDone; // Toggle completion state in UI
+                    });
+                    await FirebaseUtils.updateTaskToFireStore(widget.task);
+                    listprovider
+                      .getAllTasksFromFireStore(); // Refresh tasks list after update
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to update task: $e')),
+                    );
+                  }
+                },
+                child:widget.task.isDone
+                    ? Text(
+                        'Done!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      )
+                    : Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(widget.task.isDone
+                      ? AppColors.greenColor
+                      : AppColors.primaryColor),
                 ),
-                child: Icon(Icons.check , size:  30 , color: AppColors.whiteColor, ),
-
-              )
+              ),
             ],
           ),
-
         ),
       ),
-    ) ;
+    );
   }
+
+     void showeditscreen(context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Edittask(
+        task: widget.task,
+      ),
+    );
+  
+}
 }

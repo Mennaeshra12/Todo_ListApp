@@ -18,4 +18,14 @@ class FirebaseUtils{
   static Future<void> deleteTaskFormFireStore(Task task ){
     return getTasksCollection().doc(task.id).delete();
   }
+  static Future<void> updateTaskToFireStore(Task taskobj) async {
+    try {
+      var taskCollection = getTasksCollection();
+      var taskDocRef = taskCollection.doc(taskobj.id);
+      await taskDocRef.update(taskobj.toFireStore());
+    } catch (e) {
+      print('Failed to update task: $e');
+      throw e;
+    }
+  }
 }

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:todo_test/app_colors.dart';
+import 'package:todo_test/home/auth/login/login_screen.dart';
 import 'package:todo_test/home/settings/settings_tab.dart';
 import 'package:todo_test/home/task_list/task_list_sheet.dart';
 import 'package:todo_test/home/task_list/task_list_tab.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:todo_test/providers/list_provider.dart';
+
+import '../providers/user_provider.dart';
 class HomeScreen extends StatefulWidget {
   static const String routeName = 'home_screen';
 
@@ -16,10 +21,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var userProvider = Provider.of<UserProvider>(context );
+    var listProvider = Provider.of<ListProvider>(context );
+
     return Scaffold(
        appBar: AppBar(
+         actions: [
+           IconButton(onPressed: (){
+             listProvider.taskList = [] ;
+
+             Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+           }, icon: Icon(Icons.logout))
+         ],
          toolbarHeight: MediaQuery.of(context).size.height*0.2 ,
-         title: Text(AppLocalizations.of(context)!.app_title,
+         title: Text(
+             selectedIndex == 0 ?
+             "${AppLocalizations.of(context)!.app_title} {${userProvider.currentUser!.name}}":
+                 AppLocalizations.of(context)!.settings ,
          style: Theme.of(context).textTheme.bodyLarge,),
 
        ),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import 'package:todo_test/home/task_list/task_list_item.dart';
 import 'package:todo_test/providers/list_provider.dart';
+import 'package:todo_test/providers/user_provider.dart';
 
 import '../../model/task.dart';
 
@@ -20,8 +21,9 @@ class _TaskListTabState extends State<TaskListTab> {
   @override
   Widget build(BuildContext context) {
     var listprovider = Provider.of<ListProvider>(context) ;
-    if(listprovider.taskList.isEmpty) {  // ontime read
-     listprovider.getAllTasksFromFireStore();
+    var userProvider = Provider.of<UserProvider>(context);
+    if(listprovider.taskList.isEmpty) {  
+     listprovider.getAllTasksFromFireStore(userProvider.currentUser!.id);
     }
     return Container(
       child: Column(
@@ -29,7 +31,7 @@ class _TaskListTabState extends State<TaskListTab> {
           EasyDateTimeLine(
             initialDate: DateTime.now(),
             onDateChange: (selectedDate) {
-              listprovider.changeSelectDate(selectedDate);
+              listprovider.changeSelectDate(selectedDate,userProvider.currentUser!.id);
             },
             headerProps: const EasyHeaderProps(
               monthPickerType: MonthPickerType.switcher,
@@ -53,7 +55,7 @@ class _TaskListTabState extends State<TaskListTab> {
             ),
           ) ,
           Expanded(
-            child: listprovider.taskList.isEmpty ? Text('No Tasks Added') :
+            child: listprovider.taskList.isEmpty ? Center(child: Text('No Tasks Added')) :
             ListView.builder(
                 itemBuilder: (context , index) {
                   return TaskListItem(task: listprovider.taskList[index] ,) ;

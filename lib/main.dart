@@ -10,6 +10,7 @@ import 'package:todo_test/my_theme_data.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:todo_test/providers/app_config_provider.dart';
 import 'package:todo_test/providers/list_provider.dart';
+import 'package:todo_test/providers/user_provider.dart';
 
 
 void main()  async {
@@ -21,14 +22,17 @@ void main()  async {
           messagingSenderId: "663899640014",
           projectId: "todo-list-b4b8c"))
       : await Firebase.initializeApp();
-  await FirebaseFirestore.instance.disableNetwork() ;
+ // await FirebaseFirestore.instance.disableNetwork() ;
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => AppConfigProvider() ,
     ) ,
       ChangeNotifierProvider(
         create: (context) => ListProvider(),
-      )
+      ) ,
+    ChangeNotifierProvider(
+      create: (context) => UserProvider() ,
+    ) ,
 
 
   ],
@@ -46,7 +50,7 @@ class MyApp extends StatelessWidget {
     var provider = Provider.of<AppConfigProvider>(context) ;
     return MaterialApp(
       debugShowCheckedModeBanner: false ,
-      initialRoute: HomeScreen.routeName ,
+      initialRoute: LoginScreen.routeName ,
       routes: {
 
         HomeScreen.routeName : (context) => HomeScreen(),

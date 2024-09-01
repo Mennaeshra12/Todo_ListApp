@@ -6,6 +6,8 @@ import 'package:todo_test/model/task.dart';
 import 'package:todo_test/providers/app_config_provider.dart';
 import 'package:todo_test/providers/list_provider.dart';
 
+import '../../providers/user_provider.dart';
+
 
 
 class Edittask extends StatefulWidget {
@@ -39,7 +41,7 @@ class _EdittaskState extends State<Edittask> {
     var provider = Provider.of<AppConfigProvider>(context);
     listprovider = Provider.of<ListProvider>(context);
     return Container(
-      color: provider.isdarkmode()
+      color: provider.isDarkMode()
           ? AppColors.blackColor
           : AppColors.whiteColor,
       width: MediaQuery.of(context).size.width * 1,
@@ -52,7 +54,7 @@ class _EdittaskState extends State<Edittask> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: provider.isdarkmode()
+                  color: provider.isDarkMode()
                       ? AppColors.whiteColor
                       : AppColors.blackColor,
                 )),
@@ -67,14 +69,14 @@ class _EdittaskState extends State<Edittask> {
                       initialValue: title,
                       style: TextStyle(
                         fontSize: 18,
-                        color: provider.isdarkmode()
+                        color: provider.isDarkMode()
                             ? AppColors.whiteColor
                             : AppColors.blackColor,
                       ),
                       decoration: InputDecoration(
                           hintText: "This is Title",
                           hintStyle: TextStyle(
-                              color: provider.isdarkmode()
+                              color: provider.isDarkMode()
                                   ? AppColors.whiteColor
                                   : AppColors.blackColor)),
                       validator: (text) {
@@ -94,14 +96,14 @@ class _EdittaskState extends State<Edittask> {
                       initialValue: description,
                       style: TextStyle(
                         fontSize: 18,
-                        color: provider.isdarkmode()
+                        color: provider.isDarkMode()
                             ? AppColors.whiteColor
                             : AppColors.blackColor,
                       ),
                       decoration: InputDecoration(
                           hintText: "Task details",
                           hintStyle: TextStyle(
-                              color: provider.isdarkmode()
+                              color: provider.isDarkMode()
                                   ? AppColors.whiteColor
                                   : AppColors.blackColor)),
                       validator: (text) {
@@ -123,7 +125,7 @@ class _EdittaskState extends State<Edittask> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w400,
-                        color: provider.isdarkmode()
+                        color: provider.isDarkMode()
                             ? AppColors.whiteColor
                             : AppColors.blackColor,
                       ),
@@ -140,7 +142,7 @@ class _EdittaskState extends State<Edittask> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 18,
-                            color: provider.isdarkmode()
+                            color: provider.isDarkMode()
                                 ? Color(0xffDBDBDB)
                                 : Color.fromARGB(169, 0, 0, 0)),
                       ),
@@ -187,7 +189,9 @@ class _EdittaskState extends State<Edittask> {
   }
 
   void editTaskFunc() async {
+
     if (Edittask.formkey.currentState?.validate() == true) {
+      var userProvider = Provider.of<UserProvider>(context,listen: false);
       Edittask.formkey.currentState?.save();
 
       // Update the existing Task object with the new data
@@ -199,10 +203,10 @@ class _EdittaskState extends State<Edittask> {
         isDone: widget.task.isDone, // Maintain the current completion status
       );
 
-      await FirebaseUtils.updateTaskToFireStore(updatedTask)
+      await FirebaseUtils.updateTaskToFireStore(updatedTask,userProvider.currentUser!.id)
           .timeout(Duration(seconds: 1), onTimeout: () {
         print('Task edited succesfully');
-        listprovider. getAllTasksFromFireStore();
+        listprovider. getAllTasksFromFireStore(userProvider.currentUser!.id);
         Navigator.pop(context);
       });
     }

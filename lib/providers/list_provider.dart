@@ -6,9 +6,9 @@ import '../model/task.dart';
 class ListProvider extends ChangeNotifier{
   List<Task> taskList= [];
   var selectDate = DateTime.now() ;
-  void getAllTasksFromFireStore() async {
+  void getAllTasksFromFireStore(String uId) async {
 
-    var querySanpshot = await FirebaseUtils.getTasksCollection().get();
+    var querySanpshot = await FirebaseUtils.getTasksCollection(uId).get();
     taskList = querySanpshot.docs.map((doc) {
       return doc.data();
     }).toList();
@@ -31,9 +31,9 @@ class ListProvider extends ChangeNotifier{
     notifyListeners();
   }
 
-  void changeSelectDate (DateTime newDate){
+  void changeSelectDate (DateTime newDate , String uId){
     selectDate =newDate ;
-    getAllTasksFromFireStore() ;
+    getAllTasksFromFireStore(uId) ;
 
   }
 }

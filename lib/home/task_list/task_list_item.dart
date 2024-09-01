@@ -8,6 +8,7 @@ import 'package:todo_test/home/task_list/editTask.dart';
 import 'package:todo_test/model/task.dart';
 import 'package:todo_test/providers/app_config_provider.dart';
 import 'package:todo_test/providers/list_provider.dart';
+import 'package:todo_test/providers/user_provider.dart';
 
 class TaskListItem extends StatefulWidget {
   Task task ;
@@ -22,6 +23,7 @@ class _TaskListItemState extends State<TaskListItem> {
   Widget build(BuildContext context) {
     var listprovider = Provider.of<ListProvider>(context);
     var appProvider = Provider.of<AppConfigProvider>(context);
+    var userProvider = Provider.of<UserProvider>(context);
     return Container(
       margin: EdgeInsets.all(12),
       child: Slidable(
@@ -33,10 +35,16 @@ class _TaskListItemState extends State<TaskListItem> {
             SlidableAction(
               borderRadius: BorderRadius.circular(15),
               onPressed:(context){
-                FirebaseUtils.deleteTaskFormFireStore(widget.task).timeout(
+                var userProvider = Provider.of<UserProvider>(context ,listen: false) ;
+                FirebaseUtils.deleteTaskFormFireStore(widget.task,userProvider.currentUser!.id).
+                then((value) {
+                  print('task deleted successfully') ;
+                  listprovider.getAllTasksFromFireStore(userProvider.currentUser!.id);
+                })
+                    .timeout(
                   Duration(seconds: 1),onTimeout: (){
                     print('task deleted successfully') ;
-                    listprovider.getAllTasksFromFireStore();
+                    listprovider.getAllTasksFromFireStore(userProvider.currentUser!.id);
                 }
                 ) ;
               } ,
@@ -85,9 +93,10 @@ class _TaskListItemState extends State<TaskListItem> {
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                              color: widget.task.isDone ? AppColors.greenColor : Colors.blue,
                             ),),
+                            SizedBox(height: 10,),
                             Text(widget.task.description ,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: widget.task.isDone ? AppColors.greenColor : Colors.blue,) ),
+                                  color: widget.task.isDone ? AppColors.greenColor : Colors.black,) ),
 
                           ],
                 ),
@@ -99,11 +108,11 @@ class _TaskListItemState extends State<TaskListItem> {
                   try {
                     setState(() {
                       widget.task.isDone =
-                          !widget.task.isDone; // Toggle completion state in UI
+                          !widget.task.isDone; 
                     });
-                    await FirebaseUtils.updateTaskToFireStore(widget.task);
+                    await FirebaseUtils.updateTaskToFireStore(widget.task,userProvider.currentUser!.id);
                     listprovider
-                      .getAllTasksFromFireStore(); // Refresh tasks list after update
+                      .getAllTasksFromFireStore(userProvider.currentUser!.id); // Refresh tasks list after update
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Failed to update task: $e')),
